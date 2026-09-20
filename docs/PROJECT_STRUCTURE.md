@@ -24,6 +24,7 @@ stack.voice-labs/
 ├── .gitmodules
 ├── .markdownlint.json
 ├── .pre-commit-config.yaml
+├── AUTHORS.yml
 ├── CHANGELOG.md
 ├── README.md
 ├── VERSION.txt

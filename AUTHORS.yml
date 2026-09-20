@@ -1,0 +1,47 @@
+# Voice Labs — team and roles.
+# Roles describe ownership areas, not job titles.
+
+project: Voice Labs
+repository: stack.voice-labs
+
+authors:
+  - name: Abdilazhanov Bekbolot
+    github: abdibekbolot
+    role: owner
+    responsibilities:
+      - AI / engineering
+      - Models and workflow
+
+  - name: Aiymzhan Doskempirova
+    github: aimzhandos67
+    role: member
+    responsibilities:
+      - Data research
+      - Presentation and demo video
+
+  - name: Dayan Dayerbekova
+    github: avokebryad-svg
+    role: member
+    responsibilities:
+      - Team representative
+      - Value proposition
+
+  - name: Milana Baibalaeva
+    github: milana2811
+    role: member
+    responsibilities:
+      - Project submissions and deadlines
+      - Minute taker
+
+  - name: Bekali
+    github: qrtman
+    role: member
+    responsibilities:
+      - AI / engineering
+      - Data research
+
+  - name: Aidar
+    github: Raidnk
+    role: member
+    responsibilities:
+      - AI / engineering

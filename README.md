@@ -121,3 +121,16 @@ Keep things simple and build around real requirements.
 We prefer proven open-source tools over rebuilding solved infrastructure, but Voice Labs itself remains our platform. STT, TTS, LLM, telephony, and other providers should stay replaceable, and we avoid adding microservices or infrastructure until there is a real reason for them.
 
 The priority is clean code, clear ownership, low latency, measurable performance, and an architecture that can grow without forcing us to rewrite the core system.
+
+## Team
+
+Authors, GitHub handles, and role ownership are tracked in [`AUTHORS.yml`](AUTHORS.yml).
+
+| Name | GitHub | Responsibilities |
+|------|--------|------------------|
+| Abdilazhanov Bekbolot | [@abdibekbolot](https://github.com/abdibekbolot) | AI / engineering, models and workflow |
+| Aiymzhan Doskempirova | [@aimzhandos67](https://github.com/aimzhandos67) | Data research, presentation and demo video |
+| Dayan Dayerbekova | [@avokebryad-svg](https://github.com/avokebryad-svg) | Team representative, value proposition |
+| Milana Baibalaeva | [@milana2811](https://github.com/milana2811) | Project submissions and deadlines, minute taker |
+| Bekali | [@qrtman](https://github.com/qrtman) | AI / engineering, data research |
+| Aidar | [@Raidnk](https://github.com/Raidnk) | AI / engineering |
