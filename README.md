@@ -124,13 +124,13 @@ The priority is clean code, clear ownership, low latency, measurable performance
 
 ## Project Documentation
 
-- ### C4 Level 1 — System Context
+### C4 Level 1 — System Context
 
-  [![C4 Level 1 — System Context](docs/architecture/c4-context.svg)](docs/architecture/c4-context.svg)
+<a href="./docs/architecture/c4-context.svg"><img src="./docs/architecture/c4-context.svg" alt="C4 Level 1 — System Context" width="100%"></a>
 
-- ### C4 Level 2 — Container Diagram
+### C4 Level 2 — Container Diagram
 
-  [![C4 Level 2 — Container Diagram](docs/architecture/c4-container.svg)](docs/architecture/c4-container.svg)
+<a href="./docs/architecture/c4-container.svg"><img src="./docs/architecture/c4-container.svg" alt="C4 Level 2 — Container Diagram" width="100%"></a>
 
 - [Data Sources](docs/DATA_SOURCES.md)
 - [Test Plan](docs/TEST_PLAN.md)
