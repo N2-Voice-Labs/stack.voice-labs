@@ -126,7 +126,7 @@ The priority is clean code, clear ownership, low latency, measurable performance
 
 ### C4 Level 1 — System Context
 
-<a href="./docs/architecture/c4-context.svg"><img src="./docs/architecture/c4-context.svg" alt="C4 Level 1 — System Context" width="100%"></a>
+<a href="./docs/architecture/c4.level.svg"><img src="./docs/architecture/c4.level.svg" alt="C4 Level 1 — System Context" width="100%"></a>
 
 ### C4 Level 2 — Container Diagram
 
