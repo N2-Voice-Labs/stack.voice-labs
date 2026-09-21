@@ -122,6 +122,13 @@ We prefer proven open-source tools over rebuilding solved infrastructure, but Vo
 
 The priority is clean code, clear ownership, low latency, measurable performance, and an architecture that can grow without forcing us to rewrite the core system.
 
+## Project Documentation
+
+- [C4 Level 1 — System Context](docs/architecture/c4-context.svg)
+- [C4 Level 2 — Container Diagram](docs/architecture/c4-container.svg)
+- [Data Sources](docs/DATA_SOURCES.md)
+- [Test Plan](docs/TEST_PLAN.md)
+
 ## Team
 
 Authors, GitHub handles, and role ownership are tracked in [`AUTHORS.yml`](AUTHORS.yml).
