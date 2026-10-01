@@ -1,0 +1,41 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Node and frontend tooling
+node_modules/
+.npm/
+.pnpm-store/
+dist/
+build/
+.vite/
+
+# Local services and generated data
+volumes/
+.codebase-memory/
+coverage/
+
+# Editors and operating-system files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
+
+# Local reference documents
+/docs/architecture/inha_capstone_project_documentation_guide.pdf
+/docs/architecture/Team Project Report.epub

@@ -134,6 +134,9 @@ The priority is clean code, clear ownership, low latency, measurable performance
 
 - [Data Sources](docs/DATA_SOURCES.md)
 - [Test Plan](docs/TEST_PLAN.md)
+- [Backend Architecture](docs/BACKEND_ARCHITECTURE.md)
+- [Backend Tasks](docs/BACKEND_TASKS.md)
+- [Backend MVP Definition of Done](docs/BACKEND_MVP.md)
 
 ## Team
 
