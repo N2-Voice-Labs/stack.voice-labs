@@ -23,6 +23,8 @@ build/
 # Local services and generated data
 volumes/
 .codebase-memory/
+.cache/
+site/
 coverage/
 
 # Editors and operating-system files

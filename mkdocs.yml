@@ -1,0 +1,7 @@
+site_name: Voice Labs
+nav:
+  - Home: index.md
+  - Architecture: architecture.md
+  - Contracts: contracts.md
+  - Evaluation: evaluation.md
+  - Development: development.md
