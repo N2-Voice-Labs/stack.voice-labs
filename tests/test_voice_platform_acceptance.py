@@ -503,8 +503,12 @@ async def _verify_runtime_state_loss_retry(
                         "room_name": session["room_name"],
                         "system_prompt": "Use the original saved prompt.",
                         "voice_id": "recovery-voice",
+                        "mode": "agent",
+                        "interpreter": None,
                         "providers": {},
                         "provider_settings": {},
+                        "tools": [],
+                        "knowledge_enabled": False,
                     }
     finally:
         for task in runtime_tasks:

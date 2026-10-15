@@ -2,6 +2,8 @@
 
 Status: planned
 
+Follow-on milestone: see [Backend Milestone 8 — Voice Studio, Deployments, and Calls](BACKEND_STUDIO_PLAN.md).
+
 This is the implementation backlog for the first backend milestone. Tasks are ordered by dependency. Check a task only when its acceptance criteria and tests are complete.
 
 ## Milestone 0 — workspace and contracts

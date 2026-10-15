@@ -224,6 +224,7 @@ The priority is clean code, clear ownership, low latency, measurable performance
 - [Test Plan](docs/TEST_PLAN.md)
 - [Backend Architecture](docs/BACKEND_ARCHITECTURE.md)
 - [Backend Tasks](docs/BACKEND_TASKS.md)
+- [Backend Studio Plan](docs/BACKEND_STUDIO_PLAN.md)
 - [Backend MVP Definition of Done](docs/BACKEND_MVP.md)
 
 ## Team

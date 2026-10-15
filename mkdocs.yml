@@ -1,7 +1,24 @@
 site_name: Voice Labs
 nav:
   - Home: index.md
-  - Architecture: architecture.md
-  - Contracts: contracts.md
-  - Evaluation: evaluation.md
-  - Development: development.md
+  - Get started:
+      - Run locally (team guide): run-locally.md
+      - "Quickstart: API tour": quickstart-api.md
+      - "Quickstart: real voice call": quickstart-voice.md
+      - Development: development.md
+      - Troubleshooting: troubleshooting.md
+  - Concepts:
+      - Concepts: concepts.md
+      - Architecture: architecture.md
+      - Backend Architecture: BACKEND_ARCHITECTURE.md
+  - Reference:
+      - Contracts: contracts.md
+      - Evaluation: evaluation.md
+  - Project:
+      - Project Report (6–9): PROJECT_REPORT.md
+      - Progress: PROGRESS.md
+      - Backend MVP: BACKEND_MVP.md
+      - Backend Tasks: BACKEND_TASKS.md
+      - Backend Studio Plan: BACKEND_STUDIO_PLAN.md
+      - Backend Live Plan: BACKEND_LIVE_PLAN.md
+      - Backend Translate Plan: BACKEND_TRANSLATE_PLAN.md
