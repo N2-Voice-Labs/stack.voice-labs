@@ -1,6 +1,7 @@
 site_name: Voice Labs
 nav:
   - Home: index.md
+  - System overview: SYSTEM_OVERVIEW.md
   - Get started:
       - Run locally (team guide): run-locally.md
       - "Quickstart: API tour": quickstart-api.md
@@ -22,3 +23,6 @@ nav:
       - Backend Studio Plan: BACKEND_STUDIO_PLAN.md
       - Backend Live Plan: BACKEND_LIVE_PLAN.md
       - Backend Translate Plan: BACKEND_TRANSLATE_PLAN.md
+      - Backend status (now and next): BACKEND_STATUS.md
+      - North Star Plan: NORTH_STAR_PLAN.md
+      - Backend Roadmap: BACKEND_ROADMAP.md

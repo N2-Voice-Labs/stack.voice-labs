@@ -33,15 +33,22 @@ authenticates them and stores each event once.
 
 ## Agent
 
-An agent is the configured persona: `name`, `description`, `system_prompt`,
-`enabled_languages` (default `["en","ru"]`), optional `stt_provider_id`, `llm_provider_id`,
-`tts_provider_id`, a legacy `voice_id` string, an optional `voice_profile_id`, and `status`.
+An agent is either a conversational persona or an interpreter. A **conversational agent**
+has `name`, `description`, `system_prompt`, `enabled_languages` (default `["en","ru"]`),
+optional `stt_provider_id`, `llm_provider_id`, `tts_provider_id`, a legacy `voice_id`
+string, an optional `voice_profile_id`, and `status`. An **interpreter agent** has
+`mode=interpreter`, an `interpreter` configuration (languages, direction, engine), and
+no system prompt or voice. Both have `status` (`enabled` or `disabled`).
 
 - **Statuses:** `enabled` (default) or `disabled`. `DELETE /agents/{id}` disables, not removes.
 - **Endpoints:** `POST/GET /agents`, `GET/PATCH/DELETE /agents/{id}`.
 - Starting a session requires an `enabled` agent (`409 agent_not_enabled` otherwise).
+- **Default:** `mode=agent` (conversational). Set to `mode=interpreter` with an
+  `interpreter` config to create a translator agent.
 
-**Today:** instructions, languages, providers, and voice reach Runtime at session start.
+**Today:** instructions, languages, providers, and voice reach Runtime at session start
+for conversational agents. Interpreter agents are recorded and bridge-callable; they reach
+Runtime with their mode and interpreter configuration.
 **Not yet:** assigned tools and knowledge are not sent to Runtime.
 
 ## Provider configs
@@ -56,7 +63,12 @@ non-secret `configuration` and an optional `secret_reference`. Secret-looking ke
 **Today:** Runtime supports Deepgram (STT), OpenAI or OpenAI-compatible (LLM), and Cartesia (TTS).
 Only a small set of settings is forwarded (STT `model`, `language`, `interim_results`,
 `smart_format`; LLM `model`, `temperature`, `max_tokens`, `top_p`; TTS `model`, `language`).
-Any other provider name is rejected by Runtime. API keys come from the environment, not the database.
+Any other provider name is rejected by Runtime when the session starts. API keys come from the environment, not the database.
+
+STT and TTS providers come from small registries in Runtime (`runtime/speech_providers.py`),
+the same pattern as translation engines. Adding a provider (for example ElevenLabs TTS) is one
+factory and one `register_tts(...)` call; pipelines never import a vendor directly. The agent's
+provider records decide which one a session uses.
 
 ## Voice
 
@@ -71,32 +83,33 @@ A voice is a reusable TTS identity. It has a `source`, a `status`, `languages` (
 
 Statuses move as `pending → processing → ready | failed`, `failed → pending`, and
 `ready ↔ disabled`. Moving to `ready` needs a provider voice ID. Other endpoints:
-`GET /voices`, `GET/PATCH /voices/{id}`, `POST /voices/{id}/status`, `DELETE /voices/{id}`
-(soft disable).
+`GET /voices`, `GET/PATCH /voices/{id}`, `POST /voices/{id}/status`, `POST /voices/{id}/provision`,
+`POST /voices/{id}/preview`, `DELETE /voices/{id}` (soft disable).
 
 An agent points at a voice with `voice_profile_id`. At session start, the voice must be `ready`
 (`409 selected_voice_unavailable` otherwise) and its provider voice ID is sent to Runtime as
 `voice_id`. Without a profile, the legacy `voice_id` is used.
 
-**Today:** these are records plus a status lifecycle. A library voice carries a real provider voice ID that is sent to Runtime (real-provider
-speech with it has not been recorded as verified).
-**Not yet:** no provider clone or design job runs, so a clone or design voice stays `pending`
-until something external moves its status. There is no preview synthesis and no sample upload
-storage; `sample_reference` is just an external URI such as `s3://...`.
+### Consent-based voice cloning
 
-### Consent-based cloning
+Cloning requires explicit consent: `consent` must have `confirmed: true`, a `subject_name`,
+a `statement` (why cloning is needed), and a `method` (`self` for the subject, `authorized`
+for a delegate). Without it you get `422 voice_consent_required`.
 
-Voice Labs treats cloning as something that needs permission:
+`POST /voices/{id}/provision` (on a `source=clone` voice in `pending` or `failed` status)
+sends the consented sample to Runtime. Runtime downloads it from the HTTPS `sample_reference`
+URL (≤10 MB, audio content-type, host must be public), validates it, and uploads it to the
+TTS provider's clone API. The voice moves to `processing`, then to `ready` with a
+`provider_voice_id` on success or to `failed` with a `failure_reason` on error.
 
-- **Consent attestation is required.** `consent` must have `confirmed: true`, a `subject_name`,
-  a `statement`, and a `method` of `self` or `authorized`. Without it you get
-  `422 voice_consent_required`.
-- **Provenance is kept.** The consent record is stored with the voice, and the server adds
-  `recorded_at`.
-- **No raw samples in Platform.** Only the `sample_reference` is stored.
-- **Disclose that it is AI.** Agents using cloned or synthetic voices should tell callers they
-  are talking to an AI. This is a guideline for how you write agent instructions; Platform does not
-  enforce it.
+`POST /voices/{id}/preview` (on a `ready` voice) returns audio (MIME type `audio/wav`)
+synthesized with the voice's provider and voice ID.
+
+**Today:** cloning provisioning is implemented (routes to Runtime, which validates and uploads).
+Voice preview and library voice provisioning are verified against Cartesia.
+**Not yet:** voice design stays `pending` until something external moves its status; cloning
+is not exercised against a real Cartesia trunk. Consent provenance is kept on the voice
+record and the server adds `recorded_at`; Platform never stores raw samples.
 
 ## Deployment
 
@@ -106,12 +119,18 @@ A deployment makes an agent reachable on a channel.
   (`active`, `paused`, `archived`), `phone_number`, `configuration`.
 - **Rules:** a `sip` deployment requires an E.164 `phone_number`; other channels must not have
   one. `archived` is terminal.
-- **Endpoints:** `POST/GET /deployments`, `GET/PATCH/DELETE /deployments/{id}` (delete archives).
+- **Endpoints:** `POST/GET /deployments`, `GET/PATCH/DELETE /deployments/{id}` (delete archives),
+  `POST /deployments/{id}/bridge-call` (SIP deployment with a cascaded, `auto`-direction
+  interpreter).
 - Pass `deployment_id` to `POST /voice/sessions` to record the deployment and channel on the
   conversation. It must be active and belong to the same agent.
+- **SIP configuration:** `configuration.transfer_to` (validated `+E.164` or tel:/sip:/sips: URI)
+  sets the destination for `transfer_to_human` handoffs.
 
-**Today:** the `web` path is what has a running client. Deployments tag conversations with a channel.
-**Not yet:** nothing answers a phone number. `sip` and `api` deployments are records only.
+**Today:** the `web` path is what has a running client. Deployments tag conversations with a
+channel. `sip` deployments can dial outbound campaigns and bridge interpreter calls (with
+`LIVEKIT_SIP_TRUNK_ID` configured).
+**Not yet:** `api` deployments are records only.
 
 ## Conversation (call)
 
@@ -152,10 +171,14 @@ fields are `summary`, `intent` (up to 200 characters), `actions` (a list of obje
 - Record one with `PUT /conversations/{id}/outcome`, or via an `OutcomeRecorded` event.
 - A `HandoffRequested` event sets `outcome=escalated` and appends a `handoff_requested` action
   with the reason and target. The last write wins.
+- In a SIP call, the agent's `transfer_to_human` tool initiates a transfer to the deployment's
+  configured `transfer_to` destination (or the `SIP_TRANSFER_TO` environment variable) via
+  LiveKit SIP, or records the handoff intent if no SIP participant exists (e.g., a web call).
 
-**Today:** outcomes are stored and filterable through the API.
-**Not yet:** nothing generates summaries with an LLM, and no call is actually transferred.
-A handoff only records the intent.
+**Today:** outcomes are stored and filterable through the API. SIP transfer is implemented
+(transfers the calling SIP participant to the configured destination).
+**Not yet:** nothing generates summaries with an LLM. Transfer is not exercised against
+a real SIP trunk.
 
 ## Tools
 
@@ -193,6 +216,69 @@ Six static personas: `customer_support`, `sales`, `receptionist`, `booking`, `re
 **Not yet:** `suggested_tools` are names only. No tools are created or assigned, and the new
 agent has no voice or provider until you set them.
 
+## Interpreter mode
+
+An agent has three possible modes:
+
+1. **Assistant mode** (`mode=agent`, no `translation`): conversational agent that reasons in one language, ignores what the caller speaks, and answers in the agent's configured voice.
+
+2. **Interpreter mode** (`mode=interpreter`): translator between two parties. The agent repeats what each speaker says in the other language, using agreed voice profiles. Both parties join the same LiveKit room; the interpreter sits between them.
+
+3. **Assistant + translator** (`mode=agent` with `translation`): the agent reasons in one language (the `working_language`) while callers speak others. The caller's speech is translated in, the agent's reply is translated out, and both are spoken in the caller's language. This is useful for multilingual receptionists and customer support.
+
+### Interpreter agent (mode=interpreter)
+
+An interpreter agent carries an `interpreter` configuration:
+
+```json
+{
+  "languages": ["en", "ru"],
+  "direction": "auto",
+  "engine": "cascaded"
+}
+```
+
+- **Two engines:**
+  - `cascaded` (default): separate STT → LLM → TTS chains. Expected latency 1.5–3 s after the speaker stops. Supports both languages with the agent's voice.
+  - `realtime` (OpenAI gpt-realtime-translate): translates while the speaker talks. Latency ~1 s after the speaker starts. One-way only (`languages[0] → languages[1]`); uses provider voices, not the agent's. Target language must be in OpenAI's output set.
+
+- **Direction:**
+  - `auto`: bidirectional (each utterance flips to the other language). Requires both languages in Deepgram's code-switching set.
+  - `one_way`: fixed mapping (`languages[0] → languages[1]`). Supports any language pair both providers handle.
+
+- **Two speakers:** Each participant declares a language and optionally a consented voice profile. The interpreter listens in the first speaker's language, translates to the second's, and speaks with the assigned voice. `POST /voice/sessions` with a `participant` field creates the first speaker; `POST /voice/sessions/{id}/participants` adds the second.
+
+- **Consent rule:** Voices come from consented voice profiles (not cloned from live call audio). Instant cloning of the other person's voice without consent would be impersonation.
+
+- **No barge-in:** A translation is never cut off by the other person starting to speak; their speech is queued and translated next, maintaining speaker fairness.
+
+- **Creation:** `POST /agents` with `mode=interpreter` requires an `interpreter` config; `mode=agent` forbids it.
+
+**Today:** `engine=cascaded` with `direction=auto` verified with real Deepgram/OpenAI/Cartesia (1.47 s end-to-speech p50). Two-person mode verified with Korean ↔ English (0.8–1.4 s). `engine=realtime` verified with real OpenAI (0.96 s p50 from speech start); transcription text occasionally misses spaces. Bridge-call endpoint dials both parties, handled by the interpreter, and records the session.
+
+**Not yet:** SIP transfer and phone calls use mocks only. Per-listener audio routing (only the other person hears the translation) is future work; everyone in the room hears all audio.
+
+### Assistant + translator (mode=agent with translation)
+
+An agent stays in its own language while supporting callers who speak others:
+
+```json
+{
+  "translation": {
+    "working_language": "en",
+    "caller_languages": ["ru"]
+  }
+}
+```
+
+The LLM, tools, and knowledge stay in `working_language`; inbound speech is translated from each `caller_language`, and outbound speech is translated to the caller's language. The agent's instructions, reasoning, and function calls are all in English; only the audio in/out is translated.
+
+Automatic language detection works if both the `working_language` and all `caller_languages` are in Deepgram's code-switching set; otherwise one fixed caller language is required.
+
+**Today:** Verified with real Deepgram/OpenAI/Cartesia (English agent, Russian caller, 1.9 s p50 end-to-speech).
+
+**Not yet:** Voice cloning for agent replies is not yet exercised; `provider_settings.llm.translation_model` defaults to `gpt-4.1-nano`.
+
 ## Campaigns and targets
 
 A campaign groups outbound-call targets for an agent and a SIP deployment, with a schedule
@@ -203,11 +289,17 @@ Campaign statuses: `draft → scheduled → running ⇄ paused → completed`, a
 state can go to `cancelled`. Scheduling needs an active SIP deployment and at least one target.
 
 - **Endpoints:** `POST/GET /campaigns`, `GET/PATCH /campaigns/{id}`, `POST /campaigns/{id}/status`,
-  `POST/GET /campaigns/{id}/targets`.
+  `POST /campaigns/{id}/dial-next`, `POST/GET /campaigns/{id}/targets`.
+- **Dispatcher:** when a campaign moves to `running` and `LIVEKIT_SIP_TRUNK_ID` is configured,
+  an in-process dispatcher opens a voice session per pending target, dials it, and tracks the
+  outcome. Targets transition `pending → calling → completed | failed | no_answer`. Failed or
+  unanswered calls retry if `attempts < max_attempts`.
 
-**Today:** durable records and validated status transitions.
-**Not yet:** there is no dialer. Setting a campaign to `running` places no calls; targets stay
-`pending`.
+**Today:** durable records, validated status transitions, and an in-process dialer. Setting a
+campaign to `running` dials pending targets (if SIP is configured).
+**Not yet:** the dispatcher does not honour `schedule_start`/`schedule_end` or `retry_delay_*`
+config, and is per-process (not safe for multi-replica). A crash leaves in-flight targets in
+`calling`.
 
 ## Analytics
 

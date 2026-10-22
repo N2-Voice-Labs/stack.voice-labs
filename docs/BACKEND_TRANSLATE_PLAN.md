@@ -1,10 +1,17 @@
 # Backend Milestone 10: Live translation (interpreter mode)
 
-Status: stage 1 done and verified with real providers (backend only; frontend untouched)
+Status: stages 1–3b done and verified with real providers; stage 4 (phone) implemented behind configuration, not verified without a SIP trunk (backend only; frontend untouched)
 
 An agent can run as an **interpreter** instead of an assistant: it repeats what each
 speaker says in the other language, using a chosen voice. This builds on the existing
 Runtime (LiveKit + Pipecat) and providers. The first stage needs no new provider keys.
+
+## Out of scope
+
+- **Instant cloning of a caller's voice from live call audio.** Without that person's
+  consent it is impersonation, so voices always come from consented voice profiles.
+- **Emotion and prosody transfer.** Limited to what the TTS provider exposes (speed and
+  emotion controls); not promised.
 
 ## Design decisions
 
@@ -84,16 +91,55 @@ assistant agents).
   The translation call dominates. Next optimizations: stream the translation into TTS
   sentence by sentence, try a faster model, and compare with the streaming engine (TR-010).
 
+### Stage 1b: speed and voice
+
+- [x] **TR-004 Stream the translation.** Speak the translation sentence by sentence while
+  the model is still generating, and end the turn sooner (0.3 s pause instead of 0.5 s).
+  Result (2026-10-18, same EN ↔ RU test, n=4): end of speech → first translated audio p50
+  1.47 s (was 1.82 s), p95 2.67 s. OpenAI time to the first translated words now dominates
+  and varies; the streaming engine (TR-010) targets that.
+- [x] **TR-005 Speak in the user's own voice.** `POST /voices/{id}/provision` clones a
+  consented `https://` sample at Cartesia and marks the voice `ready`; assign it to the
+  interpreter agent. Not yet exercised against Cartesia (needs a consented recording). Depends on consent-gated cloning (LV-022 in
+  the [Backend Live Plan](BACKEND_LIVE_PLAN.md)): a cloned voice becomes `ready` and the
+  interpreter speaks with it.
+
 ### Stage 2: streaming engine
 
-- [ ] **TR-010** `engine: "cascaded" | "realtime"` on the interpreter config; a Runtime
-  adapter for OpenAI `gpt-realtime-translate` (provider voice, not the user's).
+- [x] **TR-010** `engine: "cascaded" | "realtime"` on the interpreter config; a Runtime
+  adapter for OpenAI `gpt-realtime-translate` (provider voice, not the user's; `one_way`
+  only, because a session has one fixed output language and doesn't report the source
+  language). Verified 2026-10-18 with real OpenAI, Russian → English, n=3: correct
+  translations; first audible translated audio p50 0.96 s **after the speaker starts**
+  (it translates while they talk), p95 1.6 s. Silent output chunks are not counted.
+  Known issue: transcript text occasionally misses a space between streamed pieces.
 - [ ] **TR-011** Latency and quality comparison between engines on the evaluation set.
+  First data point (same Russian sentence): cascaded speaks 1.47 s after the speaker
+  stops; realtime starts 0.96 s after the speaker starts. Cascaded keeps the user's own
+  voice and supports `auto` two-way; realtime is faster but one-way with provider voices.
 
 ### Stage 3: two speakers, two voices
 
-- [ ] **TR-020** Per-participant language and voice: each speaker hears the other in that
-  speaker's own consented voice profile.
+- [x] **TR-020** Per-participant language and voice: each speaker hears the other in that
+  speaker's own consented voice profile. `POST /voice/sessions` takes a `participant`
+  (language, voice profile) and `POST /voice/sessions/{id}/participants` adds the second
+  person. Each person gets their own VAD and STT lane in their declared language, so no
+  detection is needed and Korean two-way works. Pipecat's LiveKit input resampled every
+  participant through one shared resampler, which leaked one person's audio into the
+  other's lane; Runtime now resamples per participant. Verified 2026-10-18 with real
+  providers, Korean ↔ English: correct translations both ways, no crosstalk,
+  end of speech → first translated audio 0.8–1.4 s. Per-listener routing (each person hears
+  only the other's translation) is done in RM-001 of the [Roadmap](BACKEND_ROADMAP.md).
+
+### Stage 3b: agent + translator
+
+- [x] **TR-040** An assistant agent keeps working in its own language while the caller
+  speaks another: the caller's speech is translated in, and the agent's reply is translated
+  out and spoken in the caller's language. Agent field `translation`
+  `{working_language, caller_languages}`; the LLM context, tools and knowledge stay in the
+  working language. Verified 2026-10-18 with real providers (English receptionist, Russian
+  caller, n=2): correct Russian replies using the agent's English instructions; end of
+  speech → first audio p50 1.9 s, p95 2.3 s (translation legs default to `gpt-4.1-nano`).
 
 ### Stage 4: phone calls
 

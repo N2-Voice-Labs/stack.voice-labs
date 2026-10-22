@@ -509,6 +509,7 @@ async def _verify_runtime_state_loss_retry(
                         "provider_settings": {},
                         "tools": [],
                         "knowledge_enabled": False,
+                        "transfer_to": None,
                     }
     finally:
         for task in runtime_tasks:

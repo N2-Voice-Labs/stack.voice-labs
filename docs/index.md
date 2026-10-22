@@ -52,6 +52,7 @@ Compose starts infrastructure only. Platform, Runtime, and the web app run from 
 
 | Page | Use it to |
 | --- | --- |
+| [System overview](SYSTEM_OVERVIEW.md) | Everything we have: features, architecture, open-source stack, status |
 | [Run locally (team guide)](run-locally.md) | **Start here:** run the whole stack on your machine and talk to an agent |
 | [Quickstart: API tour](quickstart-api.md) | Take a 5-minute API tour, no provider keys needed |
 | [Quickstart: voice](quickstart-voice.md) | Talk to an agent with real speech |

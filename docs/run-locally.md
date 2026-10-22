@@ -241,6 +241,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_CAPABILITIES=voicePreview,liveLatency,toolExecution,knowledgeSearch
 PLATFORM_WEB_ORIGIN=http://localhost:3000
 PLATFORM_ALLOW_PRIVATE_NETWORK=0
+PLATFORM_API_KEYS=
 
 LIVEKIT_URL=ws://localhost:7880
 LIVEKIT_API_KEY=devkey
@@ -254,6 +255,11 @@ CARTESIA_VOICE_ID=
 
 > **Never commit `.env` or paste keys into docs, chats or issues.** `.env` is gitignored.
 > If a key leaks, rotate it in the provider's dashboard.
+
+`PLATFORM_API_KEYS` stays empty locally, which turns Platform API authentication off (the web
+app sends no credentials yet). Set it to one or more comma-separated secrets before the API is
+reachable from anywhere other than your machine; see
+[Authentication](contracts.md#authentication).
 
 `NEXT_PUBLIC_CAPABILITIES` switches on web-app features whose backend support has landed
 (voice preview, live latency, tools and knowledge during calls). Leave a feature out to show
@@ -340,7 +346,68 @@ see the transcript with language tags, or check the numbers:
 curl -s "localhost:8000/analytics/summary" | jq '.latency'
 ```
 
-## 10. Smoke test without a browser (optional)
+## 10. Try live translation (optional)
+
+Create agents that translate between speakers or work in one language while callers speak another.
+
+### a. Bidirectional interpreter (English ↔ Russian)
+
+```bash
+curl -s -X POST localhost:8000/agents \
+  -H 'content-type: application/json' \
+  -d '{
+    "name": "EN-RU Interpreter",
+    "mode": "interpreter",
+    "interpreter": {
+      "languages": ["en", "ru"],
+      "direction": "auto",
+      "engine": "cascaded"
+    }
+  }' | jq '.id' > /tmp/en_ru_interpreter.json
+```
+
+Open the agent in the web app, start a conversation, and speak English or Russian; the interpreter translates to the other language.
+
+### b. One-way realtime translation (Russian → English)
+
+```bash
+curl -s -X POST localhost:8000/agents \
+  -H 'content-type: application/json' \
+  -d '{
+    "name": "RU→EN Realtime",
+    "mode": "interpreter",
+    "interpreter": {
+      "languages": ["ru", "en"],
+      "direction": "one_way",
+      "engine": "realtime"
+    }
+  }' | jq '.id' > /tmp/ru_en_realtime.json
+```
+
+This uses OpenAI gpt-realtime-translate, which translates while the speaker talks (lower latency than cascaded). It does not support automatic direction switching.
+
+### c. Receptionist with translation (English agent, Russian callers)
+
+```bash
+RECEPTIONIST_ID=$(curl -s -X POST localhost:8000/agent-templates/receptionist/agents \
+  -H 'content-type: application/json' \
+  -d '{"name":"Multilingual Receptionist"}' | jq -r '.id')
+
+curl -s -X PATCH "localhost:8000/agents/$RECEPTIONIST_ID" \
+  -H 'content-type: application/json' \
+  -d '{
+    "translation": {
+      "working_language": "en",
+      "caller_languages": ["ru"]
+    }
+  }' | jq '.id'
+```
+
+The receptionist agent reasons in English but understands Russian callers. Their speech is translated in, and the agent's replies are translated to Russian and spoken in the caller's language.
+
+Open the agent in the web app and speak Russian. The agent responds using its English knowledge base, but you hear Russian.
+
+## 11. Smoke test without a browser (optional)
 
 Hear a voice without making a call. This confirms your Cartesia key and voice. Run it in a
 terminal where you loaded `.env`, so `$CARTESIA_VOICE_ID` is set:
@@ -356,7 +423,7 @@ curl -s localhost:8000/voices/$VOICE/preview -H 'content-type: application/json'
 
 For a full API walkthrough that needs no keys, see [Quickstart: API tour](quickstart-api.md).
 
-## 11. Run the tests
+## 12. Run the tests
 
 ```bash
 export PYTHONDONTWRITEBYTECODE=1
@@ -368,7 +435,7 @@ cd ~/voice-labs/frontend.voice-labs && npm test && npm run typecheck
 Tests use SQLite and fake providers. They never spend provider credits. More options
 (PostgreSQL, LiveKit, acceptance tests) are in [Development](development.md).
 
-## 12. Stop everything
+## 13. Stop everything
 
 `Ctrl+C` in terminals 1–3, then:
 
