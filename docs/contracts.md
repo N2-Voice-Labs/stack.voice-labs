@@ -502,7 +502,82 @@ Validation and errors:
 - `422 participants_require_cascaded_interpreter`: agent is not an interpreter or uses `engine=realtime`.
 - `409 selected_voice_unavailable`: voice profile is not `status=ready` or lacks a `provider_voice_id`.
 
-**Status:** Verified 2026-10-18 with Korean ↔ English (0.8–1.4 s end-to-speech). Fixed Pipecat shared-resampler crosstalk; everyone hears all audio (per-listener routing deferred).
+**Status:** Verified 2026-10-18 with Korean ↔ English (0.8–1.4 s end-to-speech). Fixed Pipecat shared-resampler crosstalk; per-listener routing since RM-001/RM-002.
+
+#### Private listening (PR-11)
+
+In a two-participant interpreter session without `interpreter.hear_original`, nobody can ever
+receive another participant's raw microphone. LiveKit cannot deny one track to a participant
+that may subscribe at all, so the Platform splits each participant's audio over two rooms
+(additive; sessions that are not two-participant interpreters, and `hear_original: true`
+sessions, are unchanged: one room, `connection` is `{url, token}`):
+
+- **Session room** (`room_name`, as before). `connection.token` has `canPublish=true`,
+  `canSubscribe=false`: the participant publishes their microphone and receives nothing,
+  whatever the client does (auto-subscribe, `set_subscribed`, or a forced server-side
+  subscription are all refused by LiveKit). Only the Runtime (which can subscribe) hears it.
+- **Listen room** `<room_name>--listen--<identity>`. `connection.listen` carries a
+  subscribe-only token (`canPublish=false`, `canPublishData=false`) for it. Only that
+  participant and the Runtime join it; the Runtime publishes the participant's translation
+  there as the track `translation-for-<identity>`.
+
+`connection` (session creator, and the guest from `POST /voice/sessions/{id}/participants`):
+
+```json
+{
+  "url": "wss://...",
+  "token": "<session room, publish only>",
+  "listen": {
+    "url": "wss://...",
+    "token": "<listen room, subscribe only>",
+    "room_name": "voice-labs-<session>--listen--<identity>",
+    "track": "translation-for-<identity>"
+  }
+}
+```
+
+The session contract sent to the Runtime (`POST /sessions`, stored in `runtime_contract`, so
+`ensure-running` carries it) gains the optional top-level `private_listening: true`; it is
+absent otherwise and requires `participants` (`422 private_listening_requires_participants`).
+The Runtime derives the listen room name itself with the same convention. The Platform
+it is **off by default** until the web app joins the listen room; `PLATFORM_PRIVATE_LISTENING=1` switches it on for new sessions (single
+shared room as before, unsubscribe-after-join routing with its ~0.1 s join leak); a session
+keeps the mode it started in.
+
+Client rules: connect to both rooms with the same identity; publish the microphone only in
+the session room; play audio only from the listen room (the session room delivers none).
+
+**Phone (SIP) participants.** LiveKit's `CreateSIPParticipant` has no permission fields, so a
+phone always joins with the default grant (publish and subscribe) and would be auto-subscribed
+to every microphone in its room; it cannot be given `can_subscribe=false` either, because a SIP
+leg lives in exactly one room and would then not hear its translation. So with private listening
+a phone is never put in the session room. `POST /voice/sessions/{id}/phone-participants`
+(session creator only; same rules and errors as `/participants`, plus `409 sip_not_configured`)
+takes `{language, phone_number (E.164), voice_profile_id?, display_name?}` and dials the phone
+into its own **phone room** `<room_name>--phone--<identity>` (identity `sip-guest-<8 hex>`), the
+same room the Runtime publishes `translation-for-<identity>` in. Only the phone and the Runtime
+are in it: the other person's voice is not there, and the phone's microphone is not in the
+session room, so there is no join-time window. Response `201`:
+`{participant_identity, participant_id, phone_number, room_name, private_listening}`
+(`room_name` is the room dialled; with `private_listening: false` or `hear_original` it is the
+session room and the phone keeps the unsubscribe routing above).
+
+The participant entry in the stored session contract and in the Runtime's `participants`
+(`POST /sessions`, `POST /sessions/{id}/participants`) gains the optional `phone_room: true`
+(absent otherwise; `422 phone_room_requires_private_listening` without `private_listening`).
+The Runtime joins the phone room as soon as the participant is registered (the Platform tells it
+before dialling, so the first words of the callee are heard), forwards the phone's microphone to
+the pipeline as that participant's audio and publishes its translation there. If the call does
+not connect (`502 sip_dial_failed`) the Platform withdraws the participant with
+`DELETE /sessions/{id}/participants/{identity}` on the Runtime (phone-room participants only,
+the latest added; `409 participant_not_removable`) so the slot is free for a retry. Ending the
+session hangs up the phone legs. `bridge-call` (two phones, no participant mapping) is not
+private-listening capable yet.
+
+**Status:** phone rooms are covered by unit tests with a mocked LiveKit API and fake rooms. Not
+verified against a real SIP trunk (RM-013): that LiveKit SIP puts the participant in the dialled
+room (the Runtime does not depend on when), that the Runtime's join completes before the callee
+answers, and the audio path of the forwarded phone microphone.
 
 #### Agent translation (assistant + translator)
 
@@ -608,3 +683,37 @@ session contract.
 - Applies to the cascaded engine and to agent + translator mode. The realtime engine
   (gpt-realtime-translate) has no instruction or glossary field and ignores it.
 - An invalid glossary is rejected with 422 (`invalid_glossary: <reason>` for `translation`).
+
+### Provider failures (PR-30)
+
+A dead or out-of-credit provider never leaves a call silent. Runtime detects fatal errors from
+STT, LLM and translator, TTS, and the realtime engine (a Pipecat `ErrorFrame` that is fatal or
+whose service became "no longer usable"; HTTP 401/403/402, `quota_exceeded`,
+`insufficient_quota`; realtime close code 3000 `invalid_api_key`) in every pipeline: agent,
+interpreter (cascaded one-way and two-person, realtime) and agent + translator.
+
+Events (`POST /runtime/events`, `schema_version` 1, accepted and stored by Platform):
+
+| Event | Payload | Meaning |
+| --- | --- | --- |
+| `ProviderFailed` | `kind`: `stt`, `llm`, `tts` or `realtime`; `provider` (registry name, e.g. `cartesia`); `reason`: `auth`, `quota`, `unavailable` or `other`; `message` | A provider can no longer serve the call. Emitted once per failure. `message` is a fixed phrase (`cartesia tts is out of credit or quota`), never provider error text, so it cannot carry a key. |
+| `EngineFallback` | `from: "realtime"`, `to: "cascaded"` | The session carries on with the cascaded engine after a realtime failure. |
+
+Policy:
+
+- **Fatal** (`auth`, `quota`, or a service Pipecat gave up on) in STT, LLM/translator or TTS:
+  `ProviderFailed`, then the normal session-ended path with `SessionFailed`
+  `{outcome: "failed", reason: "provider_failed"}`. The pipeline is cancelled, the room closed
+  and the Runtime worker freed; Platform marks the session `failed`.
+- **Transient** (timeouts, 5xx, 429, dropped socket): the first one per provider kind in 30 s is
+  tolerated (Pipecat services reconnect and the OpenAI client retries once on their own); the
+  next takes the fatal path with reason `unavailable`.
+- **Realtime engine**: one reconnect, except rejected credentials or no credit, which fail at
+  once. Reason `unavailable` or `other` on a one-way session with cascaded providers
+  configured restarts that session's pipeline on the cascaded engine (`ProviderFailed` then
+  `EngineFallback`; the room and session continue, no second `RuntimeStarted`). `auth` and
+  `quota` never fall back: the cascaded translator uses the same OpenAI key. Without
+  cascaded providers the session ends as above. A provider failing after the fallback ends
+  the session.
+
+Fallback restarts the Runtime's pipeline (a short audio gap), it is not a hot swap.

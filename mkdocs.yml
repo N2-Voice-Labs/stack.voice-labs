@@ -15,6 +15,7 @@ nav:
   - Reference:
       - Contracts: contracts.md
       - Evaluation: evaluation.md
+      - "Frontend: private listening": frontend-private-listening.md
   - Project:
       - Project Report (6–9): PROJECT_REPORT.md
       - Progress: PROGRESS.md
@@ -24,5 +25,6 @@ nav:
       - Backend Live Plan: BACKEND_LIVE_PLAN.md
       - Backend Translate Plan: BACKEND_TRANSLATE_PLAN.md
       - Backend status (now and next): BACKEND_STATUS.md
+      - Production plan: PRODUCTION_PLAN.md
       - North Star Plan: NORTH_STAR_PLAN.md
       - Backend Roadmap: BACKEND_ROADMAP.md

@@ -106,6 +106,14 @@ translation tracks as wav for the NS-03 audio checks), `--api-key` when the Plat
 some items. Results use synthetic voices over a local network; they show regressions and
 the engine gap, not real-world latency.
 
+### Timeline marks for the step-by-step engine
+
+Besides T0–T5, the step-by-step engine now records `translation_first_token` (first word
+from the translation model), `translation_first_chunk` (first piece handed to TTS) and
+`tts_request` (first text sent to TTS). So: translation model wait = first token − T3,
+chunking wait = first chunk − first token, TTS wait = T4 − TTS request. The live report
+shows them in "Where the time goes".
+
 ### First smoke run (2026-10-21, KO → EN, one speaker)
 
 Small runs to check the runner, not a benchmark (n is too small for p95).

@@ -149,8 +149,10 @@ in a browser and an English speaker on a phone, talking to each other live.
 5. **Realtime and glossary:** the realtime engine cannot use a glossary, so the terms feature
    works only with the step-by-step engine.
 6. **Voice cloning and SIP** have only been tested with mocks.
-7. **Join-time leak:** a participant can hear up to about 0.1 s of another's original voice
-   when joining, and a client that subscribes by itself can override server-side routing.
+7. **Join-time leak:** closed for browser participants by PR-11 private listening (session-room
+   tokens cannot subscribe; translation arrives in a listen room, the web app must connect to
+   it). Phone (SIP) participants still rely on the server-side unsubscribe, with its ~0.1 s
+   join leak.
 8. **Nothing is committed yet** in either repository.
 
 ## Open source and services we use

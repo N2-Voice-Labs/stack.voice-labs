@@ -42,8 +42,9 @@ Rules:
   through the LiveKit server API. Verified live 2026-10-18 (Korean ↔ English): each person
   heard only the other's translation; `hear_original: true` works; single-caller sessions
   unchanged. Limits: a join-time leak of up to ~0.1 s, and a client that re-subscribes itself
-  can override the server. The web app must play any subscribed audio track, not only
-  `pipecat-audio`.
+  can override the server; closed by PR-11 private listening (humans cannot subscribe in
+  the session room; translations come in a per-listener listen room, see
+  `contracts.md`). The web app must play audio from the listen room.
 - [x] **RM-003 First-audio latency instrumentation.** Timestamps T0 speaker starts, T1 VAD
   detects, T2 first transcript, T3 translation starts, T4 first audible translated audio,
   T5 playback stable; report `time_to_first_audio = T4 − T0` per utterance, per engine.
