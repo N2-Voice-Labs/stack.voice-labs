@@ -1,9 +1,10 @@
 # Workspace agent instructions
 
-This repository owns shared Voice Labs Compose, environment configuration, documentation,
-and acceptance tests. Platform, Runtime, and Evals are staged together in sibling
-`backend.voice-labs`; Web is staged in sibling `frontend.voice-labs`. The six original
-repositories are recoverable source copies and must remain unchanged unless requested.
+This repository owns shared Voice Labs Compose, environment configuration, the docs site,
+and acceptance tests. Platform, Runtime, and Evals live in sibling `backend.voice-labs`; the
+web app lives in sibling `frontend`. All three are on GitHub under `N2-Voice-Labs`. Goal,
+status and contracts are maintained only in `backend.voice-labs/docs`; link to them, do not
+copy them here.
 
 Do not create nested repositories/submodules, add remotes, commit, push, or deploy. Keep
 Compose, environment, setup, and repository mapping documentation accurate. Preserve the
