@@ -5,13 +5,10 @@ microphone, LiveKit, Runtime (Deepgram, OpenAI, Cartesia), and back to your spea
 uses the local web app. If you only want to explore the API without any provider keys, use
 [Quickstart: API tour](quickstart-api.md) first.
 
-> **Verification status.** With real provider keys, a session has been observed to start:
-> Runtime joined the LiveKit room and connected to Deepgram and Cartesia. A complete spoken
-> turn (you speak, the agent answers aloud) has **not** been recorded as verified, and the
-> opt-in real-provider acceptance test has not been run. Automated browser tests use
-> deterministic stand-ins for speech recognition, the language model and synthesis, so they
-> do not prove provider behavior. Treat the first turn on your machine as the real test, and
-> see [Troubleshooting](troubleshooting.md) if something is silent.
+> **Verification status.** A spoken agent call with real Deepgram, OpenAI and Cartesia was
+> verified in October 2026 (about 1.65 s to the first reply) on older code. For what has been
+> verified since, and when, see [Status](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/status.md). Treat the first turn on your machine
+> as the real test, and see [Troubleshooting](troubleshooting.md) if something is silent.
 
 ## What you need
 
@@ -27,9 +24,9 @@ uses the local web app. If you only want to explore the API without any provider
 | OpenAI | Language model | `OPENAI_API_KEY` |
 | Cartesia | Text-to-speech | `CARTESIA_API_KEY`, `CARTESIA_VOICE_ID` |
 
-Runtime supports only these providers today: `deepgram` for STT, `openai` or
-`openai-compatible` for the LLM, and `cartesia` for TTS. Agents that select any other
-provider fail at session start.
+This guide uses the defaults. Runtime also supports `elevenlabs` for STT and TTS (needs
+`ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID`) and `gemini` as an LLM. Agents that select an
+unregistered provider fail at session start.
 
 ## 1. Add your keys
 
@@ -67,7 +64,7 @@ docker compose ps        # wait until postgres is healthy
 ```
 
 Then three terminals. Each loads the same `.env`. The paths assume the sibling layout
-(`stack.voice-labs`, `backend.voice-labs`, `frontend.voice-labs` side by side). Examples use
+(`stack.voice-labs`, `backend.voice-labs`, `frontend` side by side). Examples use
 uv; without it, see [Development](development.md#python-environments) for the virtual
 environment equivalent.
 
@@ -92,7 +89,7 @@ export PYTHONDONTWRITEBYTECODE=1
 uv run uvicorn src.runtime.api:app --reload --port 8001
 ```
 
-**Terminal 3: web app** (from `frontend.voice-labs`):
+**Terminal 3: web app** (from `frontend`):
 
 ```bash
 npm ci
@@ -219,10 +216,10 @@ work fully with a Platform on your own machine:
 
 The reliable fix is to run the web app locally (step 2). The alternative is to make Platform
 reachable at a public URL, for example through a tunnel, and set `NEXT_PUBLIC_PLATFORM_URL`
-to it in the hosted build before building it. Be careful: **Platform has no authentication
-yet.** Anyone who learns a public URL can create sessions that spend your Deepgram, OpenAI
-and Cartesia credit and can read and change your agents and conversations. Do not leave such
-a tunnel open, and do not share it.
+to it in the hosted build before building it. Be careful: **Platform authentication is off
+unless `PLATFORM_API_KEYS` is set.** Set it before exposing Platform through a tunnel;
+otherwise anyone who learns the URL can create sessions that spend your provider credit and
+can read and change your agents and conversations. Do not leave such a tunnel open.
 
 ## Stop everything
 

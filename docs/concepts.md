@@ -1,7 +1,7 @@
 # Concepts
 
 This page explains the objects you work with in Voice Labs and how they connect. It describes
-what the code does today. Endpoint and error-code details live in [Contracts](contracts.md).
+what the code does today. Endpoint and error-code details live in [Contracts](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/contracts.md).
 
 ## The object model
 
@@ -48,8 +48,8 @@ no system prompt or voice. Both have `status` (`enabled` or `disabled`).
 
 **Today:** instructions, languages, providers, and voice reach Runtime at session start
 for conversational agents. Interpreter agents are recorded and bridge-callable; they reach
-Runtime with their mode and interpreter configuration.
-**Not yet:** assigned tools and knowledge are not sent to Runtime.
+Runtime with their mode and interpreter configuration. Assigned tools and a `knowledge_enabled`
+flag are part of the session contract (mock-tested; see Tools and Knowledge below).
 
 ## Provider configs
 
@@ -66,8 +66,8 @@ Only a small set of settings is forwarded (STT `model`, `language`, `interim_res
 Any other provider name is rejected by Runtime when the session starts. API keys come from the environment, not the database.
 
 STT and TTS providers come from small registries in Runtime (`runtime/speech_providers.py`),
-the same pattern as translation engines. Adding a provider (for example ElevenLabs TTS) is one
-factory and one `register_tts(...)` call; pipelines never import a vendor directly. The agent's
+the same pattern as translation engines. ElevenLabs (STT and TTS) is registered next to
+Deepgram and Cartesia; adding another provider is one factory and one `register_*` call; pipelines never import a vendor directly. The agent's
 provider records decide which one a session uses.
 
 ## Voice
@@ -157,9 +157,9 @@ an `event_id`, session, conversation, and agent IDs, and a payload. Platform ded
 | Metrics | `LatencyMeasured` |
 | Actions | `ToolCalled`, `HandoffRequested`, `OutcomeRecorded` |
 
-**Today:** Runtime emits the lifecycle, turn-taking, and `TranscriptFinal` events.
-**Not yet:** Runtime does not emit `LatencyMeasured`, `ToolCalled`, `HandoffRequested`, or
-`OutcomeRecorded`. Platform accepts and handles them, so they are ready for when Runtime does.
+**Today:** Runtime emits the lifecycle, turn-taking and `TranscriptFinal` events, plus
+`LatencyMeasured` (including `utterance_timeline`), `ToolCalled`, `HandoffRequested` and
+`OutcomeRecorded` from the tool runtime. The action events are mock-tested only.
 
 ## Outcomes and handoff
 
@@ -189,8 +189,10 @@ A tool is metadata for something an agent could call: a unique snake_case `name`
 - **Endpoints:** `POST/GET /tools`, `GET/PATCH/DELETE /tools/{id}` (delete disables),
   `PUT /agents/{id}/tools` (replaces the agent's set), `GET /agents/{id}/tools`.
 
-**Today:** tools are stored and assignable to agents.
-**Not yet:** tools are not included in the Platform-to-Runtime handoff, so a live agent cannot call them.
+**Today:** tools are stored, assignable, and sent to Runtime in the session contract. Runtime runs
+HTTP tools with timeouts and adds the built-ins `record_outcome`, `transfer_to_human` and
+`search_knowledge`.
+**Not yet:** tool calls have only been exercised against mock servers, never with a real LLM in a call.
 
 ## Knowledge documents
 
@@ -200,8 +202,9 @@ Text documents for grounding: `title`, `source`, `content` (up to 1,000,000 char
 - **Endpoints:** `POST/GET /knowledge/documents`, `GET/PATCH/DELETE /knowledge/documents/{id}`
   (delete disables), `PUT /agents/{id}/knowledge`, `GET /agents/{id}/knowledge`.
 
-**Today:** documents are stored and assignable.
-**Not yet:** no chunking, embeddings, or retrieval, and nothing reaches Runtime.
+**Today:** documents are stored and assignable; an agent with knowledge gets the
+`search_knowledge` tool, which does keyword search over its documents and returns a source name.
+**Not yet:** no chunking or embeddings, no links in answers, and no real-provider run.
 
 ## Agent templates
 
@@ -250,13 +253,17 @@ An interpreter agent carries an `interpreter` configuration:
 
 - **Consent rule:** Voices come from consented voice profiles (not cloned from live call audio). Instant cloning of the other person's voice without consent would be impersonation.
 
-- **No barge-in:** A translation is never cut off by the other person starting to speak; their speech is queued and translated next, maintaining speaker fairness.
+- **Intended, not measured — no barge-in:** A translation is never cut off by the other person starting to speak; their speech is queued and translated next, maintaining speaker fairness.
 
 - **Creation:** `POST /agents` with `mode=interpreter` requires an `interpreter` config; `mode=agent` forbids it.
 
 **Today:** `engine=cascaded` with `direction=auto` verified with real Deepgram/OpenAI/Cartesia (1.47 s end-to-speech p50). Two-person mode verified with Korean ↔ English (0.8–1.4 s). `engine=realtime` verified with real OpenAI (0.96 s p50 from speech start); transcription text occasionally misses spaces. Bridge-call endpoint dials both parties, handled by the interpreter, and records the session.
 
-**Not yet:** SIP transfer and phone calls use mocks only. Per-listener audio routing (only the other person hears the translation) is future work; everyone in the room hears all audio.
+**Per-listener routing:** with private listening (the default for two-person sessions), each person publishes in the session room and hears only their own translation in a separate listen room (`translation-for-<identity>`). Rebuilt after the 2026-10-18 check; mock-tested only.
+
+To translate between two people, prefer `POST /translations` (or the shareable-link `/calls`); it creates a hidden interpreter agent for you that does not appear in `GET /agents`.
+
+**Not yet:** SIP transfer and phone calls use mocks only.
 
 ### Assistant + translator (mode=agent with translation)
 
@@ -308,10 +315,10 @@ outcome, and channel; a message count by `primary_language`; and p50/p95 latency
 Missing values count as `unknown`.
 
 **Today:** counts and language distribution work.
-**Not yet:** `latency` is empty (`{}`) because Runtime does not emit `LatencyMeasured`. The payload shape
-is provisional.
+**Today:** `latency` is filled from `LatencyMeasured` events (p50/p95 per stage). Mock-tested; the payload
+shape is provisional.
 
 ## Not covered yet
 
-Platform has no authentication or multi-tenancy (deferred). The web app covers agents and
-conversations; the Milestone 8 objects above are API-only for now.
+Authentication (API keys, roles, session tokens) and per-organization scoping exist; see
+[Contracts](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/contracts.md#authentication). There is no login UI.

@@ -14,11 +14,10 @@ The workspace is a set of sibling directories. Paths in this documentation assum
 | `stack.voice-labs` | `compose.yml` (PostgreSQL, Valkey, LiveKit), `.env.example`, this documentation site, cross-service acceptance tests in `tests/` |
 | `backend.voice-labs/platform` | Platform API (FastAPI): agents, voices, deployments, sessions, conversations, analytics; Alembic migrations |
 | `backend.voice-labs/runtime` | Runtime API and Pipecat voice pipeline: joins LiveKit rooms, runs STT, LLM and TTS |
-| `backend.voice-labs/evals` | Evaluation datasets and metrics (deterministic checks only so far) |
-| `frontend.voice-labs` | Next.js web app |
+| `backend.voice-labs/evals` | Evaluation datasets and metrics and the live latency runner (`live_latency`) |
+| `frontend` | Next.js web app |
 
-The six original repositories (`platform`, `runtime`, `web`, `evals`, `docs`, `infra`
-`.voice-labs`) are recoverable source copies and are not edited. Compose starts
+Compose starts
 infrastructure only; Platform, Runtime and the web app run from their own directories.
 
 ## Environments
@@ -38,7 +37,7 @@ cp .env.example .env
 # in backend.voice-labs/platform or backend.voice-labs/runtime
 set -a; source ../../stack.voice-labs/.env; set +a
 
-# in frontend.voice-labs
+# in frontend
 set -a; source ../stack.voice-labs/.env; set +a
 ```
 
@@ -57,6 +56,10 @@ Variables that change behavior:
 | `PLATFORM_ALLOW_PRIVATE_NETWORK` | `1` enables Chrome private-network preflight answers, for a hosted page calling a local Platform. |
 | `PLATFORM_AUTO_CREATE_SCHEMA` | `1` creates tables at startup without Alembic. Used by tests; use migrations for real data. |
 | `NEXT_PUBLIC_PLATFORM_URL` | Platform URL used by the web app (default `http://localhost:8000`). |
+| `PLATFORM_API_KEYS` | Superadmin keys. Authentication is off while no keys are set. |
+| `PLATFORM_MAX_ACTIVE_SESSIONS_PER_ORG`, `PLATFORM_SESSION_CREATE_RATE` | Session limits per organization (defaults 10 active, 30 per minute). |
+| `PLATFORM_MAX_TRANSLATION_CONFIGS` | New hidden translation configurations per organization per 24 h (default 50, `0` disables). |
+| `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID` | Runtime; only needed when a session selects an `elevenlabs` provider. |
 
 ### Python environments
 
@@ -81,7 +84,7 @@ replace `uv run python` with `python` if you activated a virtual environment.
 
 ### Node
 
-`frontend.voice-labs` uses npm: `npm ci` installs from the lockfile.
+`frontend` uses npm: `npm ci` installs from the lockfile.
 
 ## Running the services
 
@@ -98,7 +101,7 @@ Then, each in its own terminal with `.env` exported as above:
 | --- | --- | --- | --- |
 | Platform | `backend.voice-labs/platform` | `python -m alembic upgrade head`, then `python -m uvicorn src.platform.main:app --reload --port 8000` | <http://localhost:8000> (Swagger UI at `/docs`) |
 | Runtime | `backend.voice-labs/runtime` | `python -m uvicorn src.runtime.api:app --reload --port 8001` | <http://localhost:8001> |
-| Web app | `frontend.voice-labs` | `npm ci && npm run dev` | <http://localhost:3000> |
+| Web app | `frontend` | `npm ci && npm run dev` | <http://localhost:3000> |
 
 Platform does not process audio and Runtime keeps no durable state: Platform owns agents,
 conversations and transcripts, Runtime owns the live session.
@@ -110,8 +113,8 @@ Set `PYTHONDONTWRITEBYTECODE=1` for every Python test run (see
 
 ```bash
 export PYTHONDONTWRITEBYTECODE=1
-cd backend.voice-labs/platform && python -m pytest -q   # 99 passed, 1 skipped
-cd backend.voice-labs/runtime  && python -m pytest -q   # 44 passed, 6 skipped
+cd backend.voice-labs/platform && python -m pytest -q
+cd backend.voice-labs/runtime  && python -m pytest -q   # last recorded counts: Status (https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/status.md)
 cd backend.voice-labs/evals    && python -m pytest -q
 ```
 
@@ -152,7 +155,7 @@ docker stop vl-test-pg
 
 ### Frontend
 
-From `frontend.voice-labs`:
+From `frontend`:
 
 ```bash
 npm test            # vitest unit tests
@@ -163,12 +166,14 @@ npm run test:e2e    # Playwright; needs LiveKit (docker compose up -d livekit)
 
 The Playwright suite starts its own isolated Platform and Runtime with deterministic
 speech stand-ins. It needs a Chrome binary; set `CHROME_BIN=/path/to/chrome` if it is not
-found. See [Progress](PROGRESS.md) for how the journeys are run.
+found.
 
 ## Migrations
 
 Alembic lives in `backend.voice-labs/platform/migrations`; it reads `PLATFORM_DATABASE_URL`.
-The current chain ends at `0004_voice_studio`. From `backend.voice-labs/platform`:
+The chain ends at `0014_system_agents` (check with `alembic heads`). The Platform test suite
+builds the schema with `create_all` and does not run migrations, so test a new migration with
+the round trip below against a disposable database. From `backend.voice-labs/platform`:
 
 ```bash
 python -m alembic upgrade head                    # apply
@@ -181,7 +186,7 @@ upgrades, downgrades and upgrades again:
 
 ```bash
 python -m alembic upgrade head
-python -m alembic downgrade 0003_conversation_indexes
+python -m alembic downgrade 0013_session_last_event
 python -m alembic upgrade head
 ```
 
@@ -256,6 +261,7 @@ to `nav` in `mkdocs.yml` to appear in the menu.
 - **Keep virtual environments outside the repositories** (for example `~/.venvs/...`) so
   they never show up as changes.
 - **Report only what you ran.** Stubbed or synthetic-media tests do not establish real
-  provider behavior; say so, as [Progress](PROGRESS.md) does.
+  provider behavior; say so, using the evidence levels in
+  [Status](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/status.md).
 - **Keep the docs accurate.** Update Compose, `.env.example`, setup instructions and these
   pages together whenever commands, ports or variables change.

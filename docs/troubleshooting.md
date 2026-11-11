@@ -128,7 +128,7 @@ curl -s http://localhost:8000/voices/<VOICE_ID> | jq '{status, provider_voice_id
 
 Either attach a library voice (created with `POST /voices`, which is `ready` immediately) to
 the agent with `PATCH /agents/<AGENT_ID>`, or move the voice along its allowed status
-transitions (see [Contracts](contracts.md#voices)).
+transitions (see [Contracts](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/contracts.md#voices)).
 
 ## 422 voice_consent_required and invalid_sample_reference
 
@@ -170,12 +170,17 @@ or the transcript stays empty.
 
 - **A made-up voice ID.** An agent whose **Voice ID** field or voice profile holds a fake
   `provider_voice_id` (such as the `demo-voice-id` from the API tour) fails at text-to-speech.
-  An agent with no voice profile uses `CARTESIA_VOICE_ID` from `.env`.
+  An agent with no voice profile uses `CARTESIA_VOICE_ID` from `.env`. Voice ids are
+  provider-specific: a mismatch is refused with `409 voice_provider_mismatch` only when both the
+  voice and the agent name a TTS provider. Runtime refuses ids outside `[A-Za-z0-9_-]{1,128}`
+  (`422 invalid_voice_id`, `422 invalid_participant_voice`) although Platform saved them.
 - **Missing, wrong or exhausted keys.** Real speech needs `DEEPGRAM_API_KEY`,
   `OPENAI_API_KEY`, `CARTESIA_API_KEY` and `CARTESIA_VOICE_ID`. Placeholders do not work, and
   trial credit can run out.
-- **Unsupported provider.** Runtime supports Deepgram (STT), OpenAI or OpenAI-compatible
-  (LLM) and Cartesia (TTS) only; an agent that selects anything else fails at start.
+- **Unsupported provider.** Runtime supports Deepgram or ElevenLabs (STT), OpenAI,
+  OpenAI-compatible or Gemini (LLM) and Cartesia or ElevenLabs (TTS); anything else fails at start.
+- **Too many sessions.** `429 too_many_active_sessions` or `429 rate_limited` (with a
+  `Retry-After` header) means the per-organization limits were hit; see Development for the variables.
 - **Microphone not allowed.** Chrome blocked the mic for `localhost`.
 
 **Fix.** Read the Runtime terminal first; provider errors appear there. Then look at the

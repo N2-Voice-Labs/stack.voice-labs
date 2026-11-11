@@ -94,8 +94,8 @@ git config --global user.email "you@example.com"     # the email on your GitHub 
 mkdir -p ~/voice-labs && cd ~/voice-labs
 git clone https://github.com/N2-Voice-Labs/stack.voice-labs.git
 git clone https://github.com/N2-Voice-Labs/backend.voice-labs.git
-git clone https://github.com/N2-Voice-Labs/frontend.voice-labs.git
-ls      # should list: backend.voice-labs  frontend.voice-labs  stack.voice-labs
+git clone https://github.com/N2-Voice-Labs/frontend.git
+ls      # should list: backend.voice-labs  frontend  stack.voice-labs
 ```
 
 You should now have:
@@ -104,7 +104,7 @@ You should now have:
 voice-labs/                # in your home folder: ~/voice-labs
 ├── stack.voice-labs/      # Docker Compose, shared .env, these docs
 ├── backend.voice-labs/    # platform/ (API), runtime/ (voice pipeline), evals/
-└── frontend.voice-labs/   # Next.js web app
+└── frontend/              # Next.js web app
 ```
 
 **If `git clone` asks for a username and password:** `backend` and `frontend` are private,
@@ -135,7 +135,7 @@ Pick a short branch name with your name in it, e.g. `aida/testing`, and run:
 
 ```bash
 cd ~/voice-labs
-for repo in stack.voice-labs backend.voice-labs frontend.voice-labs; do
+for repo in stack.voice-labs backend.voice-labs frontend; do
   git -C "$repo" switch -c yourname/testing
 done
 ```
@@ -184,7 +184,7 @@ three repositories:
 
 ```bash
 cd ~/voice-labs
-for repo in stack.voice-labs backend.voice-labs frontend.voice-labs; do
+for repo in stack.voice-labs backend.voice-labs frontend; do
   git -C "$repo" fetch origin
   git -C "$repo" merge origin/main
 done
@@ -251,6 +251,9 @@ DEEPGRAM_API_KEY=
 OPENAI_API_KEY=
 CARTESIA_API_KEY=
 CARTESIA_VOICE_ID=
+# Only needed when a session selects an elevenlabs provider. Voice ids are provider-specific.
+ELEVENLABS_API_KEY=
+ELEVENLABS_VOICE_ID=
 ```
 
 > **Never commit `.env` or paste keys into docs, chats or issues.** `.env` is gitignored.
@@ -259,7 +262,7 @@ CARTESIA_VOICE_ID=
 `PLATFORM_API_KEYS` stays empty locally, which turns Platform API authentication off (the web
 app sends no credentials yet). Set it to one or more comma-separated secrets before the API is
 reachable from anywhere other than your machine; see
-[Authentication](contracts.md#authentication).
+[Authentication](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/contracts.md#authentication).
 
 `NEXT_PUBLIC_CAPABILITIES` switches on web-app features whose backend support has landed
 (voice preview, live latency, tools and knowledge during calls). Leave a feature out to show
@@ -311,7 +314,7 @@ Check: <http://localhost:8001/health> returns `{"status":"ok"}`.
 
 ```bash
 set -a; source ~/voice-labs/stack.voice-labs/.env; set +a
-cd ~/voice-labs/frontend.voice-labs
+cd ~/voice-labs/frontend
 npm ci
 npm run dev
 ```
@@ -328,8 +331,9 @@ curl -s -X POST localhost:8000/agent-templates/receptionist/agents \
 ```
 
 An agent with **no voice profile** speaks with `CARTESIA_VOICE_ID` from `.env`. If you
-assign a voice profile, its provider voice ID must be a real Cartesia voice. Otherwise the
-agent connects but stays silent.
+assign a voice profile, its provider voice ID must be a real voice of the agent's TTS provider.
+Platform answers `409 voice_provider_mismatch` when the voice's and the agent's provider records
+differ, but it never checks that the id exists at the provider; a wrong id connects and stays silent.
 
 ## 9. Talk to it
 
@@ -429,7 +433,7 @@ For a full API walkthrough that needs no keys, see [Quickstart: API tour](quicks
 export PYTHONDONTWRITEBYTECODE=1
 cd ~/voice-labs/backend.voice-labs/platform && ~/.venvs/voice-labs/bin/python -m pytest -q
 cd ../runtime && ~/.venvs/voice-labs/bin/python -m pytest -q
-cd ~/voice-labs/frontend.voice-labs && npm test && npm run typecheck
+cd ~/voice-labs/frontend && npm test && npm run typecheck
 ```
 
 Tests use SQLite and fake providers. They never spend provider credits. More options

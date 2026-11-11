@@ -2,8 +2,8 @@
 
 The evaluation set, metrics and runner live in the `evals` project of the backend
 workspace (`backend.voice-labs/evals`). This page describes dataset v1, how to run it, and
-the first small results. See the [Test Plan](TEST_PLAN.md) for the longer-term goals and
-[Data Sources](DATA_SOURCES.md) for how real recordings will be collected.
+the first small results. The numbers below predate the 2026-11 provider changes; current
+status is in [Status](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/status.md).
 
 !!! warning "Read the numbers with care"
     The first results use **synthetic voices (macOS `say`)** and a **tiny sample (3 items
