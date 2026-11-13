@@ -1,6 +1,6 @@
-# Workspace agent instructions
+# UNAI stack workspace agent instructions (repository: stack.voice-labs)
 
-This repository owns shared Voice Labs Compose, environment configuration, the docs site,
+This repository owns shared UNAI (formerly Voice Labs) Compose, environment configuration, the docs site,
 and acceptance tests. Platform, Runtime, and Evals live in sibling `backend.voice-labs`; the
 web app lives in sibling `frontend`. All three are on GitHub under `N2-Voice-Labs`. Goal,
 status and contracts are maintained only in `backend.voice-labs/docs`; link to them, do not

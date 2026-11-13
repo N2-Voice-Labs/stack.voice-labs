@@ -1,6 +1,8 @@
-# Run Voice Labs locally (team guide)
+# Run UNAI locally (team guide)
 
-This page takes you from nothing to talking with a voice agent in your browser. Everything
+> **UNAI** (formerly Voice Labs) is a B2B AI communication platform: AI voice agents (primary), real-time translation, AI chatbots and developer APIs. First market: university admissions offices. First MVP: the AI Admissions Assistant for international students at Inha University. Calls run in the browser over WebRTC (LiveKit); telephone/SIP calling is deferred.
+
+This guide runs the UNAI platform locally and demonstrates a browser voice agent. The Inha University admissions demo journey and its agent-specific knowledge are in progress (2026-11-12). Everything
 runs on your own machine. Expect 20–30 minutes the first time.
 
 ```text

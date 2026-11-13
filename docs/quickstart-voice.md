@@ -1,6 +1,8 @@
 # Quickstart: talk to an agent
 
-This page takes you from a fresh checkout to speaking with an agent in your browser:
+> **UNAI** (formerly Voice Labs) is a B2B AI communication platform: AI voice agents (primary), real-time translation, AI chatbots and developer APIs. First market: university admissions offices. First MVP: the AI Admissions Assistant for international students at Inha University. Calls run in the browser over WebRTC (LiveKit); telephone/SIP calling is deferred.
+
+This technical quickstart demonstrates the existing browser voice path. The Inha public demo agent and integrated admissions experience are in progress (2026-11-12). It takes you from a fresh checkout to speaking with an agent in your browser:
 microphone, LiveKit, Runtime (Deepgram, OpenAI, Cartesia), and back to your speakers. It
 uses the local web app. If you only want to explore the API without any provider keys, use
 [Quickstart: API tour](quickstart-api.md) first.

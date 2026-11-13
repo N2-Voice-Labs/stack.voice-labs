@@ -1,6 +1,8 @@
 # Concepts
 
-This page explains the objects you work with in Voice Labs and how they connect. It describes
+> **UNAI** (formerly Voice Labs) is a B2B AI communication platform: AI voice agents (primary), real-time translation, AI chatbots and developer APIs. First market: university admissions offices. First MVP: the AI Admissions Assistant for international students at Inha University. Calls run in the browser over WebRTC (LiveKit); telephone/SIP calling is deferred.
+
+This page explains the objects used by the UNAI Platform and how they connect. It describes
 what the code does today. Endpoint and error-code details live in [Contracts](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/contracts.md).
 
 ## The object model
@@ -113,7 +115,7 @@ record and the server adds `recorded_at`; Platform never stores raw samples.
 
 ## Deployment
 
-A deployment makes an agent reachable on a channel.
+A deployment makes an agent reachable on a channel. For the MVP, use browser WebRTC through LiveKit; phone/SIP deployment and outbound campaigns are deferred.
 
 - **Fields:** `agent_id`, `name`, `channel` (`web`, `sip`, or `api`, fixed at creation), `status`
   (`active`, `paused`, `archived`), `phone_number`, `configuration`.
@@ -127,9 +129,7 @@ A deployment makes an agent reachable on a channel.
 - **SIP configuration:** `configuration.transfer_to` (validated `+E.164` or tel:/sip:/sips: URI)
   sets the destination for `transfer_to_human` handoffs.
 
-**Today:** the `web` path is what has a running client. Deployments tag conversations with a
-channel. `sip` deployments can dial outbound campaigns and bridge interpreter calls (with
-`LIVEKIT_SIP_TRUNK_ID` configured).
+**Today:** browser WebRTC is the MVP path. Deployments tag conversations with a channel. SIP deployment, outbound campaigns and phone bridging are existing code paths outside the MVP and are deferred.
 **Not yet:** `api` deployments are records only.
 
 ## Conversation (call)
@@ -263,7 +263,7 @@ An interpreter agent carries an `interpreter` configuration:
 
 To translate between two people, prefer `POST /translations` (or the shareable-link `/calls`); it creates a hidden interpreter agent for you that does not appear in `GET /agents`.
 
-**Not yet:** SIP transfer and phone calls use mocks only.
+**Not yet:** SIP transfer and phone calls use mocks only; phone/SIP deployment is deferred for the MVP.
 
 ### Assistant + translator (mode=agent with translation)
 

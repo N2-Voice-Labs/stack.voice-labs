@@ -1,5 +1,7 @@
 # Development
 
+> **UNAI** (formerly Voice Labs) is a B2B AI communication platform: AI voice agents (primary), real-time translation, AI chatbots and developer APIs. First market: university admissions offices. First MVP: the AI Admissions Assistant for international students at Inha University. Calls run in the browser over WebRTC (LiveKit); telephone/SIP calling is deferred.
+
 How to set up a working copy, run each service, run the tests, and keep the repositories
 clean. For a guided first run see [Quickstart: API tour](quickstart-api.md) and
 [Quickstart: talk to an agent](quickstart-voice.md); for symptoms and fixes see

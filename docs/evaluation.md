@@ -1,5 +1,7 @@
 # Evaluation
 
+> **UNAI** (formerly Voice Labs) is a B2B AI communication platform: AI voice agents (primary), real-time translation, AI chatbots and developer APIs. First market: university admissions offices. First MVP: the AI Admissions Assistant for international students at Inha University. Calls run in the browser over WebRTC (LiveKit); telephone/SIP calling is deferred.
+
 The evaluation set, metrics and runner live in the `evals` project of the backend
 workspace (`backend.voice-labs/evals`). This page describes dataset v1, how to run it, and
 the first small results. The numbers below predate the 2026-11 provider changes; current
@@ -10,6 +12,12 @@ status is in [Status](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/m
     per category)**. They prove that the pipeline works and show where to look; they are
     not an accuracy claim about real speakers, phone lines or any provider. Clean synthetic
     speech is easy for modern STT, so STT error rates are close to zero.
+
+## Planned Inha admissions FAQ evaluation (in progress)
+
+The MVP evaluation will use 20 verified Inha admissions FAQ questions, with a target of at least 18 correct answers (≥18/20). This evaluation is in progress (2026-11-12); no result has been measured.
+
+The existing translation dataset records earlier technical evaluation domains and is not the planned Inha admissions FAQ set.
 
 ## Dataset v1
 

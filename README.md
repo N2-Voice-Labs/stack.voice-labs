@@ -1,8 +1,10 @@
-# Voice Labs
+# UNAI
 
-Voice Labs is our platform for building real-time multilingual Voice AI agents.
+> **UNAI** (formerly Voice Labs) is a B2B AI communication platform: AI voice agents (primary), real-time translation, AI chatbots and developer APIs. First market: university admissions offices. First MVP: the AI Admissions Assistant for international students at Inha University. Calls run in the browser over WebRTC (LiveKit); telephone/SIP calling is deferred.
 
-The goal is to build one reliable voice platform that can understand natural conversations across multiple languages — including people switching languages in the same conversation or sentence — and then adapt that platform to different use cases such as support, sales, booking, transportation, restaurants, healthcare, and call centers.
+UNAI is Voice Labs renamed and repositioned as a B2B AI Communication Platform (AI-as-a-Service), designed for multiple industries. AI voice agents are primary; translation, chatbots and developer APIs complement them.
+
+The platform stays industry-neutral. The first target market is university admissions, with the Inha University international-student admissions assistant as the first MVP. University-specific knowledge and prompts belong in agent data, not runtime code.
 
 Instead of building a different voice system for every industry, we keep the core runtime reusable and customize each agent with its own instructions, tools, knowledge, integrations, and voice.
 
@@ -193,7 +195,7 @@ git pull
 
 Keep things simple and build around real requirements.
 
-We prefer proven open-source tools over rebuilding solved infrastructure, but Voice Labs itself remains our platform. STT, TTS, LLM, telephony, and other providers should stay replaceable, and we avoid adding microservices or infrastructure until there is a real reason for them.
+We prefer proven open-source tools over rebuilding solved infrastructure, and UNAI remains the platform. STT, TTS, LLM, telephony, and other providers should stay replaceable, and we avoid adding microservices or infrastructure until there is a real reason for them.
 
 The priority is clean code, clear ownership, low latency, measurable performance, and an architecture that can grow without forcing us to rewrite the core system.
 

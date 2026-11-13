@@ -1,7 +1,9 @@
 # Quickstart: API tour (no provider keys)
 
-A five-minute tour of the Voice Labs Platform API. You will create a voice, an agent, a
-phone deployment and a session, simulate the events a Runtime would send, and read back the
+> **UNAI** (formerly Voice Labs) is a B2B AI communication platform: AI voice agents (primary), real-time translation, AI chatbots and developer APIs. First market: university admissions offices. First MVP: the AI Admissions Assistant for international students at Inha University. Calls run in the browser over WebRTC (LiveKit); telephone/SIP calling is deferred.
+
+A five-minute tour of the UNAI Platform HTTP API (the existing developer API). This API-only tour uses a SIP deployment record as an API example; SIP/phone calling is deferred for the MVP. You will create a voice, an agent, a
+SIP deployment record and a session, simulate the events a Runtime would send, and read back the
 resulting conversation and analytics.
 
 No Deepgram, OpenAI or Cartesia keys are needed. Nothing here produces audio: Platform only

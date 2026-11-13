@@ -1,14 +1,13 @@
-# Voice Labs
+# UNAI
 
-Voice Labs is a platform for **real-time, multilingual voice AI agents**: a caller talks, by
-voice, to an agent that has a prompt, tools and knowledge, and the agent answers out loud.
+> **UNAI** (formerly Voice Labs) is a B2B AI communication platform: AI voice agents (primary), real-time translation, AI chatbots and developer APIs. First market: university admissions offices. First MVP: the AI Admissions Assistant for international students at Inha University. Calls run in the browser over WebRTC (LiveKit); telephone/SIP calling is deferred.
 
-**The current goal** is an AI voice agent people can actually call. What that means, where it
-stands and the next proofs are on one page: [Goal](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/goal.md). What works and with what
+UNAI is a B2B AI Communication Platform (AI-as-a-Service), formerly Voice Labs. AI voice agents are the primary product, with real-time translation, AI chatbots and developer APIs. Its first market is university admissions; its first MVP is the Inha University admissions assistant for international students.
+
+**The MVP journey** starts with a student opening the Inha portal, starting a browser voice call, getting answers from verified admissions information, then asking to connect to a staff member. Staff join in a browser and the call uses English↔Korean translation. This integrated MVP is in progress (2026-11-12). Product goal and next proofs: [Goal](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/goal.md). What works and with what
 evidence: [Status](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/status.md).
 
-The same Runtime can also translate a two-person call (shareable link) and run an agent that
-translates for its caller. Those exist in the code but are not the current goal.
+The existing Runtime supports interpreter calls. Integrated student-to-staff handoff and a `/staff` console are in progress. Telephone/SIP calls and outbound campaigns are deferred; the web MVP uses browser WebRTC through LiveKit.
 
 ## How a call works
 

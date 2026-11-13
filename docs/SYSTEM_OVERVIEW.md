@@ -1,23 +1,19 @@
 # System overview
 
-What Voice Labs is today, what it can do, how the parts fit together, and which open-source
-projects and services it is built on. Last reviewed 2026-11-11. The evidence marks below are a
+> **UNAI** (formerly Voice Labs) is a B2B AI communication platform: AI voice agents (primary), real-time translation, AI chatbots and developer APIs. First market: university admissions offices. First MVP: the AI Admissions Assistant for international students at Inha University. Calls run in the browser over WebRTC (LiveKit); telephone/SIP calling is deferred.
+
+UNAI is Voice Labs renamed and repositioned as an industry-neutral B2B AI Communication Platform. This page describes the platform, architecture and existing capabilities. Last reviewed 2026-11-11. The evidence marks below are a
 summary; the maintained status is [Status](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/status.md) and the current goal is
 [Goal](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/goal.md).
 
 ## What it is
 
-Voice Labs is a platform for real-time voice AI agents that understand and speak more than
-one language, including callers who mix languages in one sentence (English–Russian first;
-Korean added through translation). You create a voice, give an agent instructions, tools and
-knowledge, put it on the web or a phone line, and review every call afterwards. The AI voice
-agent is the current goal. The same runtime can also act as a live interpreter between two
-people (translated calls by shareable link).
+UNAI is a B2B AI Communication Platform (AI-as-a-Service): AI voice agents are primary, supported by real-time translation, secondary AI chatbots and developer APIs. The first target market is university admissions, with an Inha University international-student admissions assistant MVP. The MVP uses browser WebRTC through LiveKit; phone and SIP deployments are deferred. The platform stays industry-neutral, and institution knowledge and prompts live in agent data.
 
 ## Architecture
 
 ```text
- Browser (Next.js)                         Phone (SIP, behind configuration)
+ Browser (Next.js)                         Deferred phone (SIP) path
       │ WebRTC audio                              │
       ▼                                           ▼
  ┌────────────────────────── LiveKit (media server) ──────────────────────────┐
