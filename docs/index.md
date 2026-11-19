@@ -1,16 +1,13 @@
-# Voice Labs
+# UNAI
 
-Voice Labs is a platform for building **real-time, multilingual voice AI agents**. The idea:
+> **UNAI** (formerly Voice Labs) is a B2B AI communication platform: AI voice agents (primary), real-time translation, AI chatbots and developer APIs. First market: university admissions offices. First MVP: the AI Admissions Assistant for international students at Inha University. Calls run in the browser over WebRTC (LiveKit); telephone/SIP calling is deferred.
 
-1. **Create a voice.** Pick a library voice, or register a consent-gated clone or designed voice.
-2. **Configure an agent.** Give it instructions, language settings, a voice, and (soon) tools and knowledge.
-3. **Deploy it.** Define web, phone (SIP), or API deployments. Today only web has a working client; SIP and API are records.
-4. **Monitor calls.** Review transcripts, outcomes, handoffs, and analytics.
+UNAI is a B2B AI Communication Platform (AI-as-a-Service), formerly Voice Labs. AI voice agents are the primary product, with real-time translation, AI chatbots and developer APIs. Its first market is university admissions; its first MVP is the Inha University admissions assistant for international students.
 
-The core differentiator is **English/Russian code-switching**: callers who switch languages
-between or inside sentences. Initial language work covers English, Russian, and mixed
-English/Russian. Other languages (Korean, Kyrgyz, Kazakh) are deferred until the first
-vertical slice is measured.
+**The MVP journey** starts with a student opening the Inha portal, starting a browser voice call, getting answers from verified admissions information, then asking to connect to a staff member. Staff join in a browser and the call uses English↔Korean translation. This integrated MVP is in progress (2026-11-12). Product goal and next proofs: [Goal](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/goal.md). What works and with what
+evidence: [Status](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/status.md).
+
+The existing Runtime supports interpreter calls. Integrated student-to-staff handoff and a `/staff` console are in progress. Telephone/SIP calls and outbound campaigns are deferred; the web MVP uses browser WebRTC through LiveKit.
 
 ## How a call works
 
@@ -36,7 +33,7 @@ Runtime (Pipecat pipeline)
   barge-in (interruptions).
 - Runtime reports events to Platform. Platform stores each event once (idempotent by event ID).
 
-See [Concepts](concepts.md) for the object model and [Contracts](contracts.md) for API details.
+See [Concepts](concepts.md) for the object model and [Contracts](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/contracts.md) for API details.
 
 ## The three repositories
 
@@ -44,7 +41,7 @@ See [Concepts](concepts.md) for the object model and [Contracts](contracts.md) f
 | --- | --- |
 | `stack.voice-labs` (this repo) | Docker Compose (PostgreSQL, Valkey, LiveKit), shared `.env`, this docs site, cross-service acceptance tests |
 | `backend.voice-labs` | `platform/` (control-plane API), `runtime/` (live voice pipeline), `evals/` (evaluation tooling) in one uv workspace |
-| `frontend.voice-labs` | The Next.js web app (agent management, conversation history, Voice Playground) |
+| `frontend` | The Next.js web app (landing page, agent workspace, Voice Playground, call pages), deployed to Cloudflare Workers |
 
 Compose starts infrastructure only. Platform, Runtime, and the web app run from their own repositories.
 
@@ -52,14 +49,15 @@ Compose starts infrastructure only. Platform, Runtime, and the web app run from 
 
 | Page | Use it to |
 | --- | --- |
-| [System overview](SYSTEM_OVERVIEW.md) | Everything we have: features, architecture, open-source stack, status |
+| [Goal](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/goal.md) | What we are building now and what comes next |
+| [System overview](SYSTEM_OVERVIEW.md) | Everything we have: features, architecture, open-source stack |
 | [Run locally (team guide)](run-locally.md) | **Start here:** run the whole stack on your machine and talk to an agent |
 | [Quickstart: API tour](quickstart-api.md) | Take a 5-minute API tour, no provider keys needed |
 | [Quickstart: voice](quickstart-voice.md) | Talk to an agent with real speech |
 | [Concepts](concepts.md) | Learn the Voice, Agent, Deployment, and Conversation model |
 | [Development](development.md) | Run tests and work on the code |
 | [Troubleshooting](troubleshooting.md) | Fix common setup and runtime problems |
-| [Contracts](contracts.md) | Look up endpoints, events, and error codes |
+| [Contracts](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/contracts.md) | Look up endpoints, events, and error codes |
 
 ## Architecture diagrams
 
@@ -69,25 +67,6 @@ Compose starts infrastructure only. Platform, Runtime, and the web app run from 
 
 ## Current status
 
-Last progress update: 2026-10-14 (see `PROGRESS.md` in this repo).
-
-**Verified**
-
-- Automated suites pass: Platform, Runtime, Evals, stack acceptance, frontend unit tests, and a Playwright browser suite.
-- The LiveKit and Pipecat path works end to end with **stubbed** STT, LLM, and TTS: room handoff, audio frames, interruption, disconnect, recovery, and transcript persistence in PostgreSQL.
-- Silero VAD detects speech during assistant playback in an optional browser test (STT still stubbed).
-- Backend Milestone 8 (voices, deployments, campaigns, tools, knowledge, templates, outcomes, analytics) is implemented in Platform, with migration `0004_voice_studio` checked on PostgreSQL 16.
-
-**Not yet verified**
-
-- A full spoken turn with real Deepgram, OpenAI, and Cartesia credentials has **not** been recorded as passing. The opt-in real-provider test exists but has not been run.
-- English, Russian, and code-switch evaluation results (WER, latency) are pending.
-- Natural-speech quality, language detection, and latency are not established.
-
-**Deferred**
-
-- Voice cloning and design provider jobs, voice previews, and sample upload storage.
-- Outbound dialing (campaigns record state only), SIP transfer for handoff, and phone call handling.
-- Sending tools and knowledge to Runtime, plus retrieval (chunking, embeddings).
-- LLM call summaries, authentication and multi-tenancy, and web UI for Milestone 8 features.
-- Benchmarking open-source STT/LLM/TTS alternatives, and additional languages.
+See [Status](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/status.md) in the backend repository. It uses three evidence levels
+(implemented, mock-tested, real-provider-verified) and is the only status page; this site does not
+copy it. The billable real-provider checklist is the [Smoke test](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/smoke-test.md).

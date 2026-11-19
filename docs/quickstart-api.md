@@ -1,7 +1,9 @@
 # Quickstart: API tour (no provider keys)
 
-A five-minute tour of the Voice Labs Platform API. You will create a voice, an agent, a
-phone deployment and a session, simulate the events a Runtime would send, and read back the
+> **UNAI** (formerly Voice Labs) is a B2B AI communication platform: AI voice agents (primary), real-time translation, AI chatbots and developer APIs. First market: university admissions offices. First MVP: the AI Admissions Assistant for international students at Inha University. Calls run in the browser over WebRTC (LiveKit); telephone/SIP calling is deferred.
+
+A five-minute tour of the UNAI Platform HTTP API (the existing developer API). This API-only tour uses a SIP deployment record as an API example; SIP/phone calling is deferred for the MVP. You will create a voice, an agent, a
+SIP deployment record and a session, simulate the events a Runtime would send, and read back the
 resulting conversation and analytics.
 
 No Deepgram, OpenAI or Cartesia keys are needed. Nothing here produces audio: Platform only
@@ -17,7 +19,7 @@ You need Git, Docker (with Compose), Python 3.11+, `curl`, `jq` and `uuidgen`
 ```text
 stack.voice-labs/      # this repository: Compose, .env.example, docs
 backend.voice-labs/    # platform/, runtime/, evals/
-frontend.voice-labs/   # Next.js web app (not needed for this tour)
+frontend/              # Next.js web app (not needed for this tour)
 ```
 
 ## 1. Set up the environment
@@ -135,7 +137,7 @@ HTTP 422
 
 A valid clone sends `consent` with `confirmed: true`, `subject_name`, `statement` and
 `method` (`self` or `authorized`). It is stored with status `pending`; actual cloning at
-the provider is not implemented. See [Contracts](contracts.md#voices).
+the provider is not implemented. See [Contracts](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/contracts.md#voices).
 
 ### Create an agent from a template
 
@@ -333,6 +335,6 @@ volume (this erases all local data).
 
 - [Quickstart: talk to an agent](quickstart-voice.md) adds a Runtime, the web app and real
   provider keys.
-- [Contracts](contracts.md) lists every endpoint, field and error code used above.
+- [Contracts](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/contracts.md) lists every endpoint, field and error code used above.
 - [Troubleshooting](troubleshooting.md) covers errors such as `runtime_unavailable` and
   `invalid_runtime_token`.

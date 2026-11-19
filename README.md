@@ -1,8 +1,10 @@
-# Voice Labs
+# UNAI
 
-Voice Labs is our platform for building real-time multilingual Voice AI agents.
+> **UNAI** (formerly Voice Labs) is a B2B AI communication platform: AI voice agents (primary), real-time translation, AI chatbots and developer APIs. First market: university admissions offices. First MVP: the AI Admissions Assistant for international students at Inha University. Calls run in the browser over WebRTC (LiveKit); telephone/SIP calling is deferred.
 
-The goal is to build one reliable voice platform that can understand natural conversations across multiple languages — including people switching languages in the same conversation or sentence — and then adapt that platform to different use cases such as support, sales, booking, transportation, restaurants, healthcare, and call centers.
+UNAI is Voice Labs renamed and repositioned as a B2B AI Communication Platform (AI-as-a-Service), designed for multiple industries. AI voice agents are primary; translation, chatbots and developer APIs complement them.
+
+The platform stays industry-neutral. The first target market is university admissions, with the Inha University international-student admissions assistant as the first MVP. University-specific knowledge and prompts belong in agent data, not runtime code.
 
 Instead of building a different voice system for every industry, we keep the core runtime reusable and customize each agent with its own instructions, tools, knowledge, integrations, and voice.
 
@@ -50,27 +52,17 @@ For STT, TTS, and LLMs we keep provider interfaces open. Current self-hosted can
 
 ## Workspace
 
-`stack.voice-labs` owns shared local infrastructure, environment configuration, and the
-documentation site. Application code is staged in two sibling repositories; the six
-source repositories remain untouched as recoverable copies. No remotes or submodules are
-configured yet.
+Three repositories on GitHub under `N2-Voice-Labs`, cloned side by side:
 
 ```text
-capst/
-├── stack.voice-labs/      # shared Compose, env example, docs, acceptance tests
-├── backend.voice-labs/    # platform/, runtime/, evals/ (local staging repository)
-├── frontend.voice-labs/   # Next.js application (local staging repository)
-├── platform.voice-labs/   # unchanged source copy
-├── runtime.voice-labs/    # unchanged source copy
-├── web.voice-labs/        # unchanged source copy
-├── evals.voice-labs/      # unchanged source copy
-├── docs.voice-labs/       # unchanged source copy
-└── infra.voice-labs/      # unchanged source copy
+N2-Voice-Labs/
+├── stack.voice-labs/      # shared Compose, env example, docs site, acceptance tests (this repo)
+├── backend.voice-labs/    # platform/, runtime/, evals/ in one uv workspace
+└── frontend/              # Next.js web app
 ```
 
-`backend.voice-labs` groups Platform, Runtime, and Evals under one uv workspace while
-retaining their project-level conventions. `frontend.voice-labs` owns the web client.
-Actual remotes and submodule mounts are deferred until manual publication and review.
+The current goal, status and API contracts live with the code in `backend.voice-labs/docs`
+([Goal](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/goal.md), [Status](https://github.com/N2-Voice-Labs/backend.voice-labs/blob/main/docs/status.md)). No submodules.
 
 ## Getting Started
 
@@ -88,18 +80,15 @@ Node.js and npm
 
 ### Clone
 
-Clone the workspace. Submodules are intentionally added only after the independent
-repositories have been published and reviewed:
+Clone the three repositories side by side:
 
 ```bash
-git clone git@github.com:<organization>/stack.voice-labs.git
+mkdir N2-Voice-Labs && cd N2-Voice-Labs
+git clone https://github.com/N2-Voice-Labs/stack.voice-labs
+git clone https://github.com/N2-Voice-Labs/backend.voice-labs
+git clone https://github.com/N2-Voice-Labs/frontend
 cd stack.voice-labs
 ```
-
-Cloning this repository alone does not fetch application code. The current
-`backend.voice-labs` and `frontend.voice-labs` sibling staging repositories have no
-remotes yet; after they are manually published, clone them alongside `stack.voice-labs`
-before using the app startup commands below.
 
 Create the shared local environment file:
 
@@ -145,7 +134,7 @@ set +a
 uv run uvicorn src.runtime.api:app --reload --port 8001
 ```
 
-Start the web app from `frontend.voice-labs` in a third terminal, exporting the same shared
+Start the web app from `frontend` in a third terminal, exporting the same shared
 settings so Next.js receives `NEXT_PUBLIC_PLATFORM_URL`:
 
 ```bash
@@ -206,7 +195,7 @@ git pull
 
 Keep things simple and build around real requirements.
 
-We prefer proven open-source tools over rebuilding solved infrastructure, but Voice Labs itself remains our platform. STT, TTS, LLM, telephony, and other providers should stay replaceable, and we avoid adding microservices or infrastructure until there is a real reason for them.
+We prefer proven open-source tools over rebuilding solved infrastructure, and UNAI remains the platform. STT, TTS, LLM, telephony, and other providers should stay replaceable, and we avoid adding microservices or infrastructure until there is a real reason for them.
 
 The priority is clean code, clear ownership, low latency, measurable performance, and an architecture that can grow without forcing us to rewrite the core system.
 
@@ -220,12 +209,7 @@ The priority is clean code, clear ownership, low latency, measurable performance
 
 <a href="./docs/architecture/c4-container.svg"><img src="./docs/architecture/c4-container.svg" alt="C4 Level 2 — Container Diagram" width="100%"></a>
 
-- [Data Sources](docs/DATA_SOURCES.md)
-- [Test Plan](docs/TEST_PLAN.md)
-- [Backend Architecture](docs/BACKEND_ARCHITECTURE.md)
-- [Backend Tasks](docs/BACKEND_TASKS.md)
-- [Backend Studio Plan](docs/BACKEND_STUDIO_PLAN.md)
-- [Backend MVP Definition of Done](docs/BACKEND_MVP.md)
+The docs site starts at [docs/index.md](docs/index.md).
 
 ## Team
 
