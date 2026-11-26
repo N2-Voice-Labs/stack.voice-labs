@@ -29,6 +29,7 @@ os.environ["PLATFORM_DATABASE_URL"] = os.getenv(
 os.environ["PLATFORM_AUTO_CREATE_SCHEMA"] = "1"
 
 from src.platform import main as platform_main  # noqa: E402
+from src.platform import sessions as platform_sessions  # noqa: E402
 from src.runtime import api as runtime_api  # noqa: E402
 from src.runtime import events_client as runtime_events_client  # noqa: E402
 
@@ -178,7 +179,7 @@ uvicorn.run(api.app, host="127.0.0.1", port=int(__import__("os").environ["RUNTIM
             return await self.client.post(url, **kwargs)
 
     monkeypatch.setattr(
-        platform_main,
+        platform_sessions,
         "httpx",
         SimpleNamespace(AsyncClient=RuntimeHttpClient, HTTPError=httpx.HTTPError),
     )
@@ -426,7 +427,7 @@ async def _verify_runtime_state_loss_retry(
         monkeypatch.setattr(runtime_api, state_name, {})
     monkeypatch.setattr(runtime_api, "run_session", hold_runtime_before_pipeline)
     monkeypatch.setattr(
-        platform_main,
+        platform_sessions,
         "httpx",
         SimpleNamespace(AsyncClient=RuntimeHttpClient),
     )
@@ -586,7 +587,7 @@ async def _verify_cross_service_session(monkeypatch: pytest.MonkeyPatch) -> None
         SimpleNamespace(AsyncClient=PlatformHttpClient),
     )
     monkeypatch.setattr(
-        platform_main,
+        platform_sessions,
         "httpx",
         SimpleNamespace(AsyncClient=RuntimeHttpClient),
     )
